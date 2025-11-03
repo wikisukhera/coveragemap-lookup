@@ -1,0 +1,49 @@
+name: CoverageMap Lookup
+
+on:
+  workflow_dispatch:
+    inputs:
+      address:
+        required: false
+        description: 'Address to lookup'
+      lat:
+        required: false
+        description: 'Latitude (optional)'
+      lon:
+        required: false
+        description: 'Longitude (optional)'
+      callback_url:
+        required: true
+        description: 'n8n callback webhook URL for results'
+      callback_secret:
+        required: false
+        description: 'Optional secret token to include in callback header'
+
+jobs:
+  lookup:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install playwright requests
+        # install browsers
+        python -m playwright install chromium
+
+    - name: Run coverage lookup
+      env:
+        ADDRESS: ${{ github.event.inputs.address }}
+        LAT: ${{ github.event.inputs.lat }}
+        LON: ${{ github.event.inputs.lon }}
+        CALLBACK_URL: ${{ github.event.inputs.callback_url }}
+        CALLBACK_SECRET: ${{ github.event.inputs.callback_secret }}
+      run: |
+        python scripts/coveragemap_lookup.py
