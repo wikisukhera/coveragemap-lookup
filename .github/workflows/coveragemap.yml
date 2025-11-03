@@ -4,46 +4,45 @@ on:
   workflow_dispatch:
     inputs:
       address:
+        description: 'Optional address to search'
         required: false
-        description: 'Address to lookup'
       lat:
+        description: 'Optional latitude'
         required: false
-        description: 'Latitude (optional)'
       lon:
+        description: 'Optional longitude'
         required: false
-        description: 'Longitude (optional)'
       callback_url:
+        description: 'n8n callback webhook URL'
         required: true
-        description: 'n8n callback webhook URL for results'
       callback_secret:
-        required: false
-        description: 'Optional secret token to include in callback header'
+        description: 'callback secret'
+        required: true
 
 jobs:
   lookup:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install playwright requests
-        # install browsers
-        python -m playwright install chromium
+      - name: Install dependencies
+        run: |
+          npm ci || npm i
+          npm install playwright@1.40.0 minimist node-fetch@2 --no-save
+          npx playwright install chromium
 
-    - name: Run coverage lookup
-      env:
-        ADDRESS: ${{ github.event.inputs.address }}
-        LAT: ${{ github.event.inputs.lat }}
-        LON: ${{ github.event.inputs.lon }}
-        CALLBACK_URL: ${{ github.event.inputs.callback_url }}
-        CALLBACK_SECRET: ${{ github.event.inputs.callback_secret }}
-      run: |
-        python scripts/coveragemap_lookup.py
+      - name: Run Playwright lookup
+        env:
+          ADDRESS: ${{ github.event.inputs.address || '' }}
+          LAT: ${{ github.event.inputs.lat || '' }}
+          LON: ${{ github.event.inputs.lon || '' }}
+          CALLBACK_URL: ${{ github.event.inputs.callback_url }}
+          CALLBACK_SECRET: ${{ github.event.inputs.callback_secret }}
+        run: |
+          node scripts/find_square_and_return.js
