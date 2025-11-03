@@ -33,10 +33,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm ci || npm i
-          npm install playwright@1.40.0 minimist node-fetch@2 --no-save
+          npm init -y
+          npm install playwright@1.40.0 minimist node-fetch@2
           npx playwright install chromium
-
+          
       - name: Run Playwright lookup
         env:
           ADDRESS: ${{ github.event.inputs.address || '' }}
